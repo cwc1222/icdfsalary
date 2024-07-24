@@ -1,0 +1,17 @@
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  margin-top: 60px;
+}
+
+.generate-paysplit {
+  position: sticky;
+  z-index: 1000;
+  bottom: 5px;
+  width: fit-content;
+	height: fit-content;
+	max-height: -moz-max-content;
+}

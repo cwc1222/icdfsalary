@@ -1,0 +1,17 @@
+{
+  "name": "icdfsalary",
+  "description": "Chrome Extension which generates Salary Slips from the ICDF HR system",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^1.0.14",
+    "@types/chrome": "^0.0.269",
+    "sass": "^1.77.8",
+    "typescript": "^4.5.4",
+    "vite": "^2.9.15"
+  }
+}
