@@ -1,5 +1,5 @@
 import { defineManifest } from '@crxjs/vite-plugin';
-import packageJson from '../package.json';
+import packageJson from './package.json';
 
 const { version, name, description } = packageJson;
 
