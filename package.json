@@ -5,17 +5,20 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "prettier --check . && eslint .",
+    "format": "prettier --write ."
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^1.0.14",
     "@types/chrome": "^0.0.269",
     "@types/pdfmake": "^0.2.9",
+    "prettier": "^3.3.3",
     "sass": "^1.77.8",
     "typescript": "^4.5.4",
     "vite": "^2.9.15"
   },
   "dependencies": {
-    "pdfmake": "^0.2.10"
+    "jspdf": "^2.5.1"
   }
 }

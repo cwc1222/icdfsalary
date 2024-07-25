@@ -1,8 +1,9 @@
 import './style.scss';
-import pdfMake from 'pdfmake/build/pdfmake.js';
-import pdfFonts from 'pdfmake/build/vfs_fonts.js';
-pdfMake.vfs = pdfFonts.pdfMake.vfs;
+import { jsPDF } from 'jspdf';
+import NotoSansTCRegular from '../static/fonts/NotoSansTC-Regular.ttf?base64';
+import NotoSansTCBold from '../static/fonts/NotoSansTC-Bold.ttf?base64';
 
+/*
 type Currency = "新臺幣" | "美金";
 
 type Employee = {
@@ -51,31 +52,41 @@ type PaySplit = {
 
     insuranceDetail: InsuranceDetail;
 }
-
+*/
 const title = '財團法人國際合作發展基金會 薪資明細';
 
-const fetchPaySplitData = () => {};
+//const fetchPaySplitData = () => {};
 
 const generatePaySplit = () => {
-    console.log('Generate PaySplit');
-    const paysplit = fetchPaySplitData();
-    pdfMake.createPdf({
-        content: [
-            {
-                text: title,
-                fontSize: 15,
-            }
-        ],
-    }).download();
+  console.log('Generate PaySplit');
+  //const paysplit = fetchPaySplitData();
+  const doc = new jsPDF();
+
+  // Add Fonts
+  doc.addFileToVFS('NotoSansTCRegular.ttf', NotoSansTCRegular);
+  doc.addFileToVFS('NotoSansTCBold.ttf', NotoSansTCBold);
+  doc.addFont('NotoSansTCRegular.ttf', 'NotoSansTC', 'normal');
+  doc.addFont('NotoSansTCBold.ttf', 'NotoSansTC', 'bold');
+
+  // Configure PDF
+  doc.setLanguage('zh-TW');
+
+  doc.setFont('NotoSansTC', 'bold');
+  doc.text(title, 10, 10);
+
+  doc.setFont('NotoSansTC', 'normal');
+  doc.text(title, 10, 20);
+
+  doc.save('paysplit.pdf');
 };
 
 const addPrintBtn = () => {
-    console.log('addPrintBtn');
-    const btn = document.createElement('button');
-    btn.innerHTML = 'Generate Paysplit';
-    btn.className += "generate-paysplit";
-    btn.onclick = generatePaySplit;
-    document.body.appendChild(btn);
-}
+  console.log('addPrintBtn');
+  const btn = document.createElement('button');
+  btn.innerHTML = 'Generate Paysplit';
+  btn.className += 'generate-paysplit';
+  btn.onclick = generatePaySplit;
+  document.body.appendChild(btn);
+};
 
 addPrintBtn();
