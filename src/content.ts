@@ -63,60 +63,129 @@ const paySplitPdfConfig: PdfConfig = {
   bodyFontStyle: 'normal'
 };
 
-/*
 type Currency = "新臺幣" | "美金";
 
 type Employee = {
-    id: string; // 員工代碼
-    name: string; // 員工姓名
-    title: string; // 職稱
-    departmentId: string; // 管理部門編號
-    departmentName: string; // 管理部門名稱
-}
+  id: string; // 員工編號
+  name: string; // 員工姓名
+  title: string; // 職稱
+  departmentId: string; // 管理部門編號
+  departmentName: string; // 管理部門
+};
+
+type SalaryDetailItem = {
+  category: '月支薪俸' | '艱苦加給' | '勞保費' | '健保費' | '稅額 - 月支薪俸' | '稅額 - 艱苦加給' | '合計';
+  currency: Currency;
+  exchangeRate: number;
+  amount: number;
+};
+
+type SalaryDetail = {
+  payable: SalaryDetailItem[]; // 工資加項/應發金額
+  deductible: SalaryDetailItem[]; // 工資扣項/應扣金額
+  total: SalaryDetailItem;
+};
 
 type InsuranceDetail = {
-    laborInsuranceInsured: string; // 勞保投保
-    laborInsuranceEmployerCoverage: string; // 勞保雇主
-    laborInsuranceEmployeeCoverage: string; // 勞保員工
-    laborInsuranceEmployerAdvance: string; // 工資墊償
+  laborInsuranceInsured: number; // 勞保投保
+  laborInsuranceEmployerCoverage: number; // 勞保雇主
+  laborInsuranceEmployeeCoverage: number; // 勞保員工
+  laborInsuranceEmployerAdvance: number; // 工資墊償
 
-    twInsuranceInsured: string; // 健保投保
-    twInsuranceEmployerCoverage: string; // 健保雇主
-    twInsuranceEmployeeCoverage: string; // 健保員工
+  twInsuranceInsured: number; // 健保投保
+  twInsuranceEmployerCoverage: number; // 健保雇主
+  twInsuranceEmployeeCoverage: number; // 健保員工
 
-    laborRetirementInsured: string; // 勞退提繳
-    laborRetirementEmployerCoveragePercent: string; // 雇主%
-    laborRetirementEmployeeCoveragePercent: string; // 自提%
-    laborRetirementEmployerCoverage: string; // 勞退雇主
-    laborRetirementEmployeeCoverage: string; // 勞退員工
-}
+  laborRetirementInsured: number; // 勞退提繳
+  laborRetirementEmployerCoveragePercent: number; // 雇主%
+  laborRetirementEmployeeCoveragePercent: number; // 自提%
+  laborRetirementEmployerCoverage: number; // 勞退雇主
+  laborRetirementEmployeeCoverage: number; // 勞退員工
+};
 
 type PaySplit = {
-    employee: Employee;
-    payType: string; // 發薪種類
-    payMonthYear: string; // 薪資月份
-    exceedTwInsuranceAmount: string; // 逾健保倍數金額
-    twInsuranceAmount: string; // 扣費當月保額
-    accumulatedBonus: string; // 當年累計獎金
+  monthYear: string;
+  employee: Employee;
+  salaryDetail: SalaryDetail;
+  insuranceDetail: InsuranceDetail;
+};
 
-    salary: string; // 月支薪俸
-    salaryCurrency: Currency; // 月支薪俸幣別
-    salaryTaxExempt: string; // 月支薪俸免稅加項
-    salaryTax: string; // 月支薪俸稅額
-    expatBonus: string; // 艱苦加給
-    expatBonusCurrency: Currency; // 艱苦加給幣別
-    expatBonusTaxExempt: string; // 艱苦加給免稅加項
-    expatBonusTax: string; // 艱苦加給稅額
-    laborInsurance: string; // 勞保費
-    twInsurance: string; // 健保費
+const fetchPaySplitData: () => PaySplit = () => {
+  return {
+    monthYear: '202407',
+    employee: {
+      id: '9527',
+      name: '周星星',
+      title: '警佐',
+      departmentId: 'A010',
+      departmentName: '飛虎隊',
+    },
+    salaryDetail: {
+      payable: [
+        {
+          category: '月支薪俸',
+          currency: '新臺幣',
+          exchangeRate: 1,
+          amount: 49999,
+        },
+        {
+          category: '艱苦加給',
+          currency: '美金',
+          exchangeRate: 30,
+          amount: 999,
+        },
+      ],
+      deductible: [
+        {
+          category: '勞保費',
+          currency: '新臺幣',
+          exchangeRate: 1,
+          amount: 1100,
+        },
+        {
+          category: '健保費',
+          currency: '新臺幣',
+          exchangeRate: 1,
+          amount: 1800,
+        },
+        {
+          category: '稅額 - 月支薪俸',
+          currency: '新臺幣',
+          exchangeRate: 1,
+          amount: 888,
+        },
+        {
+          category: '稅額 - 艱苦加給',
+          currency: '美金',
+          exchangeRate: 30,
+          amount: 98,
+        },
+      ],
+      total: {
+        category: '合計',
+        currency: '新臺幣',
+        exchangeRate: 1,
+        amount: 73241,
+      }
+    },
+    insuranceDetail: {
+      laborInsuranceInsured: 45000,
+      laborInsuranceEmployerCoverage: 2500,
+      laborInsuranceEmployeeCoverage: 1100,
+      laborInsuranceEmployerAdvance: 11,
+      twInsuranceInsured: 87000,
+      twInsuranceEmployerCoverage: 2500,
+      twInsuranceEmployeeCoverage: 1800,
+      laborRetirementInsured: 99999,
+      laborRetirementEmployerCoveragePercent: 6,
+      laborRetirementEmployeeCoveragePercent: 0,
+      laborRetirementEmployerCoverage: 5999,
+      laborRetirementEmployeeCoverage: 0,
+    },
+  };
+};
 
-    insuranceDetail: InsuranceDetail;
-}
-*/
-
-//const fetchPaySplitData = () => {};
-
-//const validatePaySplitData = () => {};
+//const validatePaySplitData = (paysplit: PaySplit) => {};
 
 const newJsPdf = () => {
   const doc = new jsPDF({
@@ -145,19 +214,13 @@ const newJsPdf = () => {
 };
 
 const generatePaySplit = () => {
-  //const paysplit = fetchPaySplitData();
+  const paysplit = fetchPaySplitData();
 
   // Start making the PDF
   const line = (ln: number) => ln * paySplitPdfConfig.lineHeight;
   const doc = newJsPdf();
-  //const titleIcon = paySplitPdfConfig.titleIcon;
 
   doc.setFontSize(paySplitPdfConfig.titleFontSize);
-  //doc.text(
-  //  paySplitPdfConfig.titleText,
-  //  paySplitPdfConfig.marginLeft + titleIcon.width + titleIcon.marginRight,
-  //  paySplitPdfConfig.marginTop + titleIcon.height * 0.7
-  //);
   doc.text(
     paySplitPdfConfig.titleText,
     paySplitPdfConfig.marginLeft,
@@ -197,8 +260,8 @@ const generatePaySplit = () => {
     },
     startY: line(3),
     body: [
-      ['管理部門:', '駐瓜地馬拉技術團', '管理部門編號', 'SAP01', '職稱:', '技師'],
-      ['員工姓名:', '王大名', '員工編號:', '109xxx'],
+      ['管理部門:', paysplit.employee.departmentName, '管理部門編號', paysplit.employee.departmentId, '職稱:', paysplit.employee.title],
+      ['員工姓名:', paysplit.employee.name, '員工編號:', paysplit.employee.id],
     ]
   });
   doc.line(paySplitPdfConfig.marginLeft, line(5), paySplitPdfConfig.pageSize[1] - paySplitPdfConfig.marginLeft, line(5), 'F')
@@ -281,18 +344,18 @@ const generatePaySplit = () => {
         '勞退員工'
       ],
       [
-        '45,800',
-        '3,921',
-        '1,100',
-        '11.00',
-        '999,500',
-        '9,999',
-        '2,999',
-        '999,000',
-        '6',
-        '0',
-        '9,999',
-        '0'
+        paysplit.insuranceDetail.laborInsuranceInsured,
+        paysplit.insuranceDetail.laborInsuranceEmployerCoverage,
+        paysplit.insuranceDetail.laborInsuranceEmployeeCoverage,
+        paysplit.insuranceDetail.laborInsuranceEmployerAdvance,
+        paysplit.insuranceDetail.twInsuranceInsured,
+        paysplit.insuranceDetail.twInsuranceEmployerCoverage,
+        paysplit.insuranceDetail.twInsuranceEmployeeCoverage,
+        paysplit.insuranceDetail.laborRetirementInsured,
+        paysplit.insuranceDetail.laborRetirementEmployerCoveragePercent,
+        paysplit.insuranceDetail.laborRetirementEmployeeCoveragePercent,
+        paysplit.insuranceDetail.laborRetirementEmployerCoverage,
+        paysplit.insuranceDetail.laborRetirementEmployeeCoverage,
       ]
     ]
   });
