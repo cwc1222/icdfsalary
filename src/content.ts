@@ -1,6 +1,6 @@
 import './style.scss';
 import { jsPDF } from 'jspdf';
-import autoTable, { UserOptions } from 'jspdf-autotable';
+import autoTable, { CellInput, UserOptions } from 'jspdf-autotable';
 
 import icdfIcon from '../static/icdf.jpeg?base64';
 import NotoSansTCThin from '../static/fonts/NotoSansTC-Thin.ttf?base64';
@@ -54,7 +54,7 @@ const paySplitPdfConfig: PdfConfig = {
     base64Str: icdfIcon,
     imageFormat: 'JPEG',
     width: 25.6,
-    height: 13.24,
+    height: 13.24
   },
   titleText: '財團法人國際合作發展基金會 2024 年 07 月 薪資明細',
   titleFontSize: 16,
@@ -63,7 +63,7 @@ const paySplitPdfConfig: PdfConfig = {
   bodyFontStyle: 'normal'
 };
 
-type Currency = "新臺幣" | "美金";
+type Currency = '新臺幣' | '美金';
 
 type Employee = {
   id: string; // 員工編號
@@ -74,7 +74,14 @@ type Employee = {
 };
 
 type SalaryDetailItem = {
-  category: '月支薪俸' | '艱苦加給' | '勞保費' | '健保費' | '稅額 - 月支薪俸' | '稅額 - 艱苦加給' | '合計';
+  category:
+    | '月支薪俸'
+    | '艱苦加給'
+    | '勞保費'
+    | '健保費'
+    | '稅額 - 月支薪俸'
+    | '稅額 - 艱苦加給'
+    | '合計';
   currency: Currency;
   exchangeRate: number;
   amount: number;
@@ -118,7 +125,7 @@ const fetchPaySplitData: () => PaySplit = () => {
       name: '周星星',
       title: '警佐',
       departmentId: 'A010',
-      departmentName: '飛虎隊',
+      departmentName: '飛虎隊'
     },
     salaryDetail: {
       payable: [
@@ -126,46 +133,46 @@ const fetchPaySplitData: () => PaySplit = () => {
           category: '月支薪俸',
           currency: '新臺幣',
           exchangeRate: 1,
-          amount: 49999,
+          amount: 49999
         },
         {
           category: '艱苦加給',
           currency: '美金',
           exchangeRate: 30,
-          amount: 999,
-        },
+          amount: 999
+        }
       ],
       deductible: [
         {
           category: '勞保費',
           currency: '新臺幣',
           exchangeRate: 1,
-          amount: 1100,
+          amount: 1100
         },
         {
           category: '健保費',
           currency: '新臺幣',
           exchangeRate: 1,
-          amount: 1800,
+          amount: 1800
         },
         {
           category: '稅額 - 月支薪俸',
           currency: '新臺幣',
           exchangeRate: 1,
-          amount: 888,
+          amount: 888
         },
         {
           category: '稅額 - 艱苦加給',
           currency: '美金',
           exchangeRate: 30,
-          amount: 98,
-        },
+          amount: 98
+        }
       ],
       total: {
         category: '合計',
         currency: '新臺幣',
         exchangeRate: 1,
-        amount: 73241,
+        amount: 73241
       }
     },
     insuranceDetail: {
@@ -180,8 +187,8 @@ const fetchPaySplitData: () => PaySplit = () => {
       laborRetirementEmployerCoveragePercent: 6,
       laborRetirementEmployeeCoveragePercent: 0,
       laborRetirementEmployerCoverage: 5999,
-      laborRetirementEmployeeCoverage: 0,
-    },
+      laborRetirementEmployeeCoverage: 0
+    }
   };
 };
 
@@ -221,11 +228,7 @@ const generatePaySplit = () => {
   const doc = newJsPdf();
 
   doc.setFontSize(paySplitPdfConfig.titleFontSize);
-  doc.text(
-    paySplitPdfConfig.titleText,
-    paySplitPdfConfig.marginLeft,
-    paySplitPdfConfig.marginTop,
-  );
+  doc.text(paySplitPdfConfig.titleText, paySplitPdfConfig.marginLeft, paySplitPdfConfig.marginTop);
 
   // Table Config
   const tableMaxWidth = paySplitPdfConfig.pageSize[1] - paySplitPdfConfig.marginLeft * 2;
@@ -243,7 +246,7 @@ const generatePaySplit = () => {
     margin: {
       left: paySplitPdfConfig.marginLeft
     },
-    showHead: 'never',
+    showHead: 'never'
   };
 
   // Add Employee Info
@@ -253,78 +256,90 @@ const generatePaySplit = () => {
     styles: {
       font: paySplitPdfConfig.font,
       fontSize: paySplitPdfConfig.bodyFontSize,
-      cellWidth: 'auto',
+      cellWidth: 'auto'
     },
     margin: {
       left: paySplitPdfConfig.marginLeft
     },
     startY: line(3),
     body: [
-      ['管理部門:', paysplit.employee.departmentName, '管理部門編號', paysplit.employee.departmentId, '職稱:', paysplit.employee.title],
-      ['員工姓名:', paysplit.employee.name, '員工編號:', paysplit.employee.id],
+      [
+        '管理部門:',
+        paysplit.employee.departmentName,
+        '管理部門編號',
+        paysplit.employee.departmentId,
+        '職稱:',
+        paysplit.employee.title
+      ],
+      ['員工姓名:', paysplit.employee.name, '員工編號:', paysplit.employee.id]
     ]
   });
-  doc.line(paySplitPdfConfig.marginLeft, line(5), paySplitPdfConfig.pageSize[1] - paySplitPdfConfig.marginLeft, line(5), 'F')
+  doc.line(
+    paySplitPdfConfig.marginLeft,
+    line(5),
+    paySplitPdfConfig.pageSize[1] - paySplitPdfConfig.marginLeft,
+    line(5),
+    'F'
+  );
 
   // Add Salary Detail Table
   doc.setFont(paySplitPdfConfig.font, paySplitPdfConfig.bodyFontStyle);
   doc.setFontSize(paySplitPdfConfig.bodyFontSize - 1);
-  doc.text(
-    '薪資明細',
-    paySplitPdfConfig.marginLeft,
-    line(6)
-  );
+  doc.text('薪資明細', paySplitPdfConfig.marginLeft, line(6));
   autoTable(doc, {
     ...tableConfig,
     startY: line(6.5),
     body: [
       ['', '項目', '幣別', '匯率', '金額'],
-      [
-        {
-          content: '工資加項',
-          colSpan: 1,
-          rowSpan: 2,
-          styles: {
-            valign: 'middle'
-          }
-        },
-        '月支薪俸',
-        '新臺幣',
-        '1',
-        '999,000'
-      ],
-      ['艱苦加給', '美金', '30', '1,999'],
+      ...paysplit.salaryDetail.payable.map((v, i) => {
+        const item: CellInput[] = [v.category, v.currency, v.exchangeRate, v.amount.toLocaleString()];
+        if (i === 0) {
+          return [
+            {
+              content: '工資加項',
+              colSpan: 1,
+              rowSpan: paysplit.salaryDetail.payable.length,
+              styles: {
+                valign: 'middle'
+              }
+            },
+            ...item
+          ];
+        }
+        return item;
+      }),
+      [{ content: [''], colSpan: 5 }],
+      ...paysplit.salaryDetail.deductible.map((v, i) => {
+        const item: any[] = [v.category, v.currency, v.exchangeRate, v.amount.toLocaleString()];
+        if (i === 0) {
+          return [
+            {
+              content: '工資扣項',
+              colSpan: 1,
+              rowSpan: paysplit.salaryDetail.deductible.length,
+              styles: {
+                valign: 'middle'
+              }
+            },
+            ...item
+          ];
+        }
+        return item;
+      }),
       [{ content: [''], colSpan: 5 }],
       [
-        {
-          content: '工資扣項',
-          colSpan: 1,
-          rowSpan: 4,
-          styles: {
-            valign: 'middle'
-          }
-        },
-        '勞保費',
-        '新臺幣',
-        '1',
-        '1,100'
-      ],
-      ['健保費', '新臺幣', '1', '9,999'],
-      ['稅額 - 月支薪俸', '新臺幣', '1', '9,999'],
-      ['稅額 - 艱苦加給', '美金', '30', '999'],
-      [{ content: [''], colSpan: 5 }],
-      [{ content: '合計', colSpan: 2 }, '新臺幣', '1', '999,999']
+        { content: paysplit.salaryDetail.total.category, colSpan: 2 },
+        paysplit.salaryDetail.total.currency,
+        paysplit.salaryDetail.total.exchangeRate,
+        paysplit.salaryDetail.total.amount.toLocaleString()
+      ]
     ]
   });
 
   // Add Insurance Detail Table
   doc.setFont(paySplitPdfConfig.font, paySplitPdfConfig.bodyFontStyle);
   doc.setFontSize(paySplitPdfConfig.bodyFontSize - 1);
-  doc.text(
-    '保費明細',
-    paySplitPdfConfig.marginLeft,
-    line(15.5)
-  );
+  doc.text('保費明細', paySplitPdfConfig.marginLeft, line(15.5));
   autoTable(doc, {
     ...tableConfig,
     startY: line(16),
@@ -344,18 +359,18 @@ const generatePaySplit = () => {
         '勞退員工'
       ],
       [
-        paysplit.insuranceDetail.laborInsuranceInsured,
-        paysplit.insuranceDetail.laborInsuranceEmployerCoverage,
-        paysplit.insuranceDetail.laborInsuranceEmployeeCoverage,
-        paysplit.insuranceDetail.laborInsuranceEmployerAdvance,
-        paysplit.insuranceDetail.twInsuranceInsured,
-        paysplit.insuranceDetail.twInsuranceEmployerCoverage,
-        paysplit.insuranceDetail.twInsuranceEmployeeCoverage,
-        paysplit.insuranceDetail.laborRetirementInsured,
-        paysplit.insuranceDetail.laborRetirementEmployerCoveragePercent,
-        paysplit.insuranceDetail.laborRetirementEmployeeCoveragePercent,
-        paysplit.insuranceDetail.laborRetirementEmployerCoverage,
-        paysplit.insuranceDetail.laborRetirementEmployeeCoverage,
+        paysplit.insuranceDetail.laborInsuranceInsured.toLocaleString(),
+        paysplit.insuranceDetail.laborInsuranceEmployerCoverage.toLocaleString(),
+        paysplit.insuranceDetail.laborInsuranceEmployeeCoverage.toLocaleString(),
+        paysplit.insuranceDetail.laborInsuranceEmployerAdvance.toLocaleString(),
+        paysplit.insuranceDetail.twInsuranceInsured.toLocaleString(),
+        paysplit.insuranceDetail.twInsuranceEmployerCoverage.toLocaleString(),
+        paysplit.insuranceDetail.twInsuranceEmployeeCoverage.toLocaleString(),
+        paysplit.insuranceDetail.laborRetirementInsured.toLocaleString(),
+        paysplit.insuranceDetail.laborRetirementEmployerCoveragePercent.toLocaleString(),
+        paysplit.insuranceDetail.laborRetirementEmployeeCoveragePercent.toLocaleString(),
+        paysplit.insuranceDetail.laborRetirementEmployerCoverage.toLocaleString(),
+        paysplit.insuranceDetail.laborRetirementEmployeeCoverage.toLocaleString()
       ]
     ]
   });
@@ -363,7 +378,7 @@ const generatePaySplit = () => {
   // Add Background Image
   const titleIcon = paySplitPdfConfig.titleIcon;
   doc.saveGraphicsState();
-  doc.setGState(doc.GState({opacity: 0.16}));
+  doc.setGState(doc.GState({ opacity: 0.16 }));
   doc.addImage(
     titleIcon.base64Str,
     titleIcon.imageFormat,
@@ -374,7 +389,7 @@ const generatePaySplit = () => {
   );
   doc.restoreGraphicsState();
 
-  doc.save('paysplit.pdf');
+  doc.save(`${paysplit.monthYear}-${paysplit.employee.name}-paysplit.pdf`);
 };
 
 const addPrintBtn = () => {
