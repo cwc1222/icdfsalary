@@ -24,8 +24,8 @@ export default defineManifest(async () => ({
   },
   content_scripts: [
     {
-      matches: ['https://*/*'],
-      //matches: ["https://web2.icdf.org.tw/*"],
+      //matches: ['https://*/*'],
+      matches: ['https://web2.icdf.org.tw/*'],
       js: ['src/content.ts']
     }
   ],

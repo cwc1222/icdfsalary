@@ -62,8 +62,18 @@ const paySplitPdfConfig: PdfConfig = {
   bodyFontSize: 12,
   bodyFontStyle: 'normal'
 };
+const cleanCommaFromNumber = new RegExp(/,/, 'g');
+const clearLineBreak = new RegExp(/(\r\n|\n|\r)/, 'gm');
 
 type Currency = '新臺幣' | '美金';
+type SalaryDetailCategory =
+  | '月支薪俸'
+  | '艱苦加給'
+  | '勞保費'
+  | '健保費'
+  | '稅額 - 新臺幣'
+  | '稅額 - 美金'
+  | '合計';
 
 type Employee = {
   id: string; // 員工編號
@@ -74,14 +84,7 @@ type Employee = {
 };
 
 type SalaryDetailItem = {
-  category:
-    | '月支薪俸'
-    | '艱苦加給'
-    | '勞保費'
-    | '健保費'
-    | '稅額 - 月支薪俸'
-    | '稅額 - 艱苦加給'
-    | '合計';
+  category: SalaryDetailCategory;
   currency: Currency;
   exchangeRate: number;
   amount: number;
@@ -118,76 +121,154 @@ type PaySplit = {
 };
 
 const fetchPaySplitData: () => PaySplit = () => {
+  const iframe = document.querySelector(
+    'iframe[src="/EZ9/WAG/WAG101/WAG101_01"]'
+  ) as HTMLIFrameElement;
+  const doc = iframe.contentDocument || iframe?.contentWindow?.document;
+  if (!doc) {
+    throw new Error('Cannot locat the data iframe');
+  }
+  const [salaryAdd, salaryDeduct, salaryTotal, insuranceDetail] = Array.from(
+    doc.querySelectorAll('#tabs #tbDataList') as NodeListOf<HTMLTableElement>
+  );
+  if (!salaryAdd || !salaryDeduct || !salaryTotal || !insuranceDetail) {
+    throw new Error('Cannot fetch the data tab');
+  }
+
+  const payable: SalaryDetailItem[] = Array.from(
+    salaryAdd.querySelectorAll('tr.DBGridItem') as NodeListOf<HTMLTableRowElement>
+  ).map((tr) => {
+    const values = tr.querySelectorAll(
+      'td:not([style*="display: none"]):not([style*="display:none"])'
+    ) as NodeListOf<HTMLTableCellElement>;
+    const [category, currency, _, amount] = Array.from(values)
+      .map((td) => td?.textContent?.replace(clearLineBreak, ' ')?.trim())
+      .filter((v) => v)
+      .slice(1);
+    return {
+      category: category as SalaryDetailCategory,
+      currency: currency as Currency,
+      exchangeRate: currency === '新臺幣' ? 1 : 30,
+      amount: Number(amount?.replace(cleanCommaFromNumber, ''))
+    };
+  });
+  const deductible: SalaryDetailItem[] = Array.from(
+    salaryDeduct.querySelectorAll('tr.DBGridItem') as NodeListOf<HTMLTableRowElement>
+  ).map((tr) => {
+    const values = tr.querySelectorAll(
+      'td:not([style*="display: none"]):not([style*="display:none"])'
+    ) as NodeListOf<HTMLTableCellElement>;
+    const [category, currency, amount] = Array.from(values)
+      .map((td) => td?.textContent?.replace(clearLineBreak, ' ')?.trim())
+      .filter((v) => v)
+      .slice(1);
+    return {
+      category: category as SalaryDetailCategory,
+      currency: currency as Currency,
+      exchangeRate: currency === '新臺幣' ? 1 : 30,
+      amount: Number(amount?.replace(cleanCommaFromNumber, ''))
+    };
+  });
+
+  const totalTab = Array.from(
+    salaryTotal.querySelectorAll('tr.DBGridItem') as NodeListOf<HTMLTableRowElement>
+  );
+  const tax: SalaryDetailItem[] = totalTab
+    .map((tr) => {
+      const values = tr.querySelectorAll(
+        'td:not([style*="display: none"]):not([style*="display:none"])'
+      ) as NodeListOf<HTMLTableCellElement>;
+      const valuesArr = Array.from(values)
+        .map((td) => td?.textContent?.replace(clearLineBreak, ' ')?.trim())
+        .filter((v) => v);
+      const currency = valuesArr[1] as Currency;
+      const amount = Number(valuesArr[10]?.replace(cleanCommaFromNumber, ''));
+      const category: SalaryDetailCategory =
+        currency === '新臺幣' ? '稅額 - 新臺幣' : '稅額 - 美金';
+      const exchangeRate = currency === '新臺幣' ? 1 : 30;
+      return { category, currency, exchangeRate, amount };
+    })
+    .filter((tax) => ['新臺幣', '美金'].includes(tax.currency));
+
+  const total = Array.from(
+    totalTab[totalTab.length - 1].querySelectorAll(
+      'td:not([style*="display: none"]):not([style*="display:none"])'
+    ) as NodeListOf<HTMLTableCellElement>
+  );
+
+  const [
+    monthYear,
+    employeeId,
+    employeeName,
+    departmentId,
+    departmentName,
+    laborInsuranceInsured,
+    laborInsuranceEmployerCoverage,
+    laborInsuranceEmployeeCoverage,
+    laborInsuranceEmployerAdvance,
+    twInsuranceInsured,
+    twInsuranceEmployerCoverage,
+    twInsuranceEmployeeCoverage,
+    laborRetirementInsured,
+    laborRetirementEmployerCoveragePercent,
+    laborRetirementEmployeeCoveragePercent,
+    laborRetirementEmployerCoverage,
+    laborRetirementEmployeeCoverage
+  ] = Array.from(insuranceDetail.querySelectorAll('tr.DBGridItem td')).map(
+    (td) => td?.textContent?.replace(clearLineBreak, ' ')?.trim() || ''
+  );
+  const employee = {
+    id: employeeId,
+    name: employeeName,
+    title: (doc.querySelector('#txtTheTitle') as HTMLInputElement)?.value || '',
+    departmentId: departmentId,
+    departmentName: departmentName
+  };
+
   return {
-    monthYear: '202407',
-    employee: {
-      id: '9527',
-      name: '周星星',
-      title: '警佐',
-      departmentId: 'A010',
-      departmentName: '飛虎隊'
-    },
+    monthYear: monthYear,
+    employee: employee,
     salaryDetail: {
-      payable: [
-        {
-          category: '月支薪俸',
-          currency: '新臺幣',
-          exchangeRate: 1,
-          amount: 49999
-        },
-        {
-          category: '艱苦加給',
-          currency: '美金',
-          exchangeRate: 30,
-          amount: 999
-        }
-      ],
-      deductible: [
-        {
-          category: '勞保費',
-          currency: '新臺幣',
-          exchangeRate: 1,
-          amount: 1100
-        },
-        {
-          category: '健保費',
-          currency: '新臺幣',
-          exchangeRate: 1,
-          amount: 1800
-        },
-        {
-          category: '稅額 - 月支薪俸',
-          currency: '新臺幣',
-          exchangeRate: 1,
-          amount: 888
-        },
-        {
-          category: '稅額 - 艱苦加給',
-          currency: '美金',
-          exchangeRate: 30,
-          amount: 98
-        }
-      ],
+      payable,
+      deductible: [...deductible, ...tax],
       total: {
         category: '合計',
         currency: '新臺幣',
         exchangeRate: 1,
-        amount: 73241
+        amount: Number(total[12]?.textContent?.replace(cleanCommaFromNumber, ''))
       }
     },
     insuranceDetail: {
-      laborInsuranceInsured: 45000,
-      laborInsuranceEmployerCoverage: 2500,
-      laborInsuranceEmployeeCoverage: 1100,
-      laborInsuranceEmployerAdvance: 11,
-      twInsuranceInsured: 87000,
-      twInsuranceEmployerCoverage: 2500,
-      twInsuranceEmployeeCoverage: 1800,
-      laborRetirementInsured: 99999,
-      laborRetirementEmployerCoveragePercent: 6,
-      laborRetirementEmployeeCoveragePercent: 0,
-      laborRetirementEmployerCoverage: 5999,
-      laborRetirementEmployeeCoverage: 0
+      laborInsuranceInsured: Number(laborInsuranceInsured.replace(cleanCommaFromNumber, '')),
+      laborInsuranceEmployerCoverage: Number(
+        laborInsuranceEmployerCoverage.replace(cleanCommaFromNumber, '')
+      ),
+      laborInsuranceEmployeeCoverage: Number(
+        laborInsuranceEmployeeCoverage.replace(cleanCommaFromNumber, '')
+      ),
+      laborInsuranceEmployerAdvance: Number(
+        laborInsuranceEmployerAdvance.replace(cleanCommaFromNumber, '')
+      ),
+      twInsuranceInsured: Number(twInsuranceInsured.replace(cleanCommaFromNumber, '')),
+      twInsuranceEmployerCoverage: Number(
+        twInsuranceEmployerCoverage.replace(cleanCommaFromNumber, '')
+      ),
+      twInsuranceEmployeeCoverage: Number(
+        twInsuranceEmployeeCoverage.replace(cleanCommaFromNumber, '')
+      ),
+      laborRetirementInsured: Number(laborRetirementInsured.replace(cleanCommaFromNumber, '')),
+      laborRetirementEmployerCoveragePercent: Number(
+        laborRetirementEmployerCoveragePercent.replace(cleanCommaFromNumber, '')
+      ),
+      laborRetirementEmployeeCoveragePercent: Number(
+        laborRetirementEmployeeCoveragePercent.replace(cleanCommaFromNumber, '')
+      ),
+      laborRetirementEmployerCoverage: Number(
+        laborRetirementEmployerCoverage.replace(cleanCommaFromNumber, '')
+      ),
+      laborRetirementEmployeeCoverage: Number(
+        laborRetirementEmployeeCoverage.replace(cleanCommaFromNumber, '')
+      )
     }
   };
 };
@@ -266,7 +347,7 @@ const generatePaySplit = () => {
       [
         '管理部門:',
         paysplit.employee.departmentName,
-        '管理部門編號',
+        '管理部門編號:',
         paysplit.employee.departmentId,
         '職稱:',
         paysplit.employee.title
@@ -292,7 +373,12 @@ const generatePaySplit = () => {
     body: [
       ['', '項目', '幣別', '匯率', '金額'],
       ...paysplit.salaryDetail.payable.map((v, i) => {
-        const item: CellInput[] = [v.category, v.currency, v.exchangeRate, v.amount.toLocaleString()];
+        const item: CellInput[] = [
+          v.category,
+          v.currency,
+          v.exchangeRate,
+          v.amount.toLocaleString()
+        ];
         if (i === 0) {
           return [
             {
