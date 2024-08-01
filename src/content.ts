@@ -3,11 +3,7 @@ import { jsPDF } from 'jspdf';
 import autoTable, { CellInput, UserOptions } from 'jspdf-autotable';
 
 import icdfIcon from '../static/icdf.jpeg?base64';
-import NotoSansTCThin from '../static/fonts/NotoSansTC-Thin.ttf?base64';
-import NotoSansTCLight from '../static/fonts/NotoSansTC-Light.ttf?base64';
-import NotoSansTCRegular from '../static/fonts/NotoSansTC-Regular.ttf?base64';
-import NotoSansTCBold from '../static/fonts/NotoSansTC-Bold.ttf?base64';
-import NotoSansTCBlack from '../static/fonts/NotoSansTC-Black.ttf?base64';
+import type { Currency, PaySplit, SalaryDetailCategory, SalaryDetailItem } from './types';
 
 type FontStyle = 'thin' | 'light' | 'normal' | 'bold' | 'black';
 
@@ -65,60 +61,7 @@ const paySplitPdfConfig: PdfConfig = {
 const cleanCommaFromNumber = new RegExp(/,/, 'g');
 const clearLineBreak = new RegExp(/(\r\n|\n|\r)/, 'gm');
 
-type Currency = '新臺幣' | '美金';
-type SalaryDetailCategory =
-  | '月支薪俸'
-  | '艱苦加給'
-  | '勞保費'
-  | '健保費'
-  | '稅額 - 新臺幣'
-  | '稅額 - 美金'
-  | '合計';
 
-type Employee = {
-  id: string; // 員工編號
-  name: string; // 員工姓名
-  title: string; // 職稱
-  departmentId: string; // 管理部門編號
-  departmentName: string; // 管理部門
-};
-
-type SalaryDetailItem = {
-  category: SalaryDetailCategory;
-  currency: Currency;
-  exchangeRate: number;
-  amount: number;
-};
-
-type SalaryDetail = {
-  payable: SalaryDetailItem[]; // 工資加項/應發金額
-  deductible: SalaryDetailItem[]; // 工資扣項/應扣金額
-  total: SalaryDetailItem;
-};
-
-type InsuranceDetail = {
-  laborInsuranceInsured: number; // 勞保投保
-  laborInsuranceEmployerCoverage: number; // 勞保雇主
-  laborInsuranceEmployeeCoverage: number; // 勞保員工
-  laborInsuranceEmployerAdvance: number; // 工資墊償
-
-  twInsuranceInsured: number; // 健保投保
-  twInsuranceEmployerCoverage: number; // 健保雇主
-  twInsuranceEmployeeCoverage: number; // 健保員工
-
-  laborRetirementInsured: number; // 勞退提繳
-  laborRetirementEmployerCoveragePercent: number; // 雇主%
-  laborRetirementEmployeeCoveragePercent: number; // 自提%
-  laborRetirementEmployerCoverage: number; // 勞退雇主
-  laborRetirementEmployeeCoverage: number; // 勞退員工
-};
-
-type PaySplit = {
-  monthYear: string;
-  employee: Employee;
-  salaryDetail: SalaryDetail;
-  insuranceDetail: InsuranceDetail;
-};
 
 const fetchPaySplitData: () => PaySplit = () => {
   const iframe = document.querySelector(
@@ -275,7 +218,7 @@ const fetchPaySplitData: () => PaySplit = () => {
 
 //const validatePaySplitData = (paysplit: PaySplit) => {};
 
-const newJsPdf = () => {
+const newJsPdf = async () => {
   const doc = new jsPDF({
     orientation: paySplitPdfConfig.orientation,
     unit: paySplitPdfConfig.unit,
@@ -283,6 +226,22 @@ const newJsPdf = () => {
   });
 
   // Add Fonts
+  const NotoSansTCThin = await import('../static/fonts/NotoSansTC-Thin.ttf?base64').then(
+    (font) => font.default
+  );
+  const NotoSansTCLight = await import('../static/fonts/NotoSansTC-Light.ttf?base64').then(
+    (font) => font.default
+  );
+  const NotoSansTCRegular = await import('../static/fonts/NotoSansTC-Regular.ttf?base64').then(
+    (font) => font.default
+  );
+  const NotoSansTCBold = await import('../static/fonts/NotoSansTC-Bold.ttf?base64').then(
+    (font) => font.default
+  );
+  const NotoSansTCBlack = await import('../static/fonts/NotoSansTC-Black.ttf?base64').then(
+    (font) => font.default
+  );
+
   doc.addFileToVFS('NotoSansTCThin.ttf', NotoSansTCThin);
   doc.addFileToVFS('NotoSansTCLight.ttf', NotoSansTCLight);
   doc.addFileToVFS('NotoSansTCRegular.ttf', NotoSansTCRegular);
@@ -301,12 +260,12 @@ const newJsPdf = () => {
   return doc;
 };
 
-const generatePaySplit = () => {
+const generatePaySplit = async () => {
   const paysplit = fetchPaySplitData();
 
   // Start making the PDF
   const line = (ln: number) => ln * paySplitPdfConfig.lineHeight;
-  const doc = newJsPdf();
+  const doc = await newJsPdf();
 
   doc.setFontSize(paySplitPdfConfig.titleFontSize);
   doc.text(paySplitPdfConfig.titleText, paySplitPdfConfig.marginLeft, paySplitPdfConfig.marginTop);
@@ -478,12 +437,27 @@ const generatePaySplit = () => {
   doc.save(`${paysplit.monthYear}-${paysplit.employee.name}-paysplit.pdf`);
 };
 
-const addPrintBtn = () => {
-  const btn = document.createElement('button');
-  btn.innerText = 'Generate Paysplit';
-  btn.className += 'generate-paysplit';
-  btn.onclick = generatePaySplit;
-  document.body.appendChild(btn);
-};
+//const addPrintBtn = () => {
+//  const btn = document.createElement('button');
+//  btn.innerText = 'Generate Paysplit';
+//  btn.className += 'generate-paysplit';
+//  btn.onclick = generatePaySplit;
+//  document.body.appendChild(btn);
+//};
 
-addPrintBtn();
+//addPrintBtn();
+
+type ChromeExtRequest = {
+  action: 'GEN_PAYSPLIT' | 'PARSE_PAYSPLIT';
+}
+
+chrome.runtime.onMessage.addListener(function (request: ChromeExtRequest, sender, sendResponse) {
+  console.log(sender.tab ? 'from a content script:' + sender.tab.url : 'from the extension');
+  if (request.action === 'GEN_PAYSPLIT') {
+    generatePaySplit();
+  }
+  if (request.action === 'PARSE_PAYSPLIT') {
+    const data = fetchPaySplitData();
+    sendResponse(data);
+  }
+});

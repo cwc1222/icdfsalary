@@ -36,11 +36,11 @@ export default defineManifest(async () => ({
   //    page: "src/options.html",
   //    open_in_tab: false,
   //},
-  //side_panel: {
-  //    default_path: "src/sidepanel.html",
-  //},
+  side_panel: {
+    default_path: 'src/sidepanel.html'
+  },
   action: {
     default_popup: 'src/index.html'
-  }
-  //permissions: ["storage", "sidePanel"] as chrome.runtime.ManifestPermissions[],
+  },
+  permissions: ['sidePanel'] as chrome.runtime.ManifestPermissions[]
 }));
