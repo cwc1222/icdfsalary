@@ -25,6 +25,10 @@ export class App extends LitElement {
   }
 
   render() {
+    const paysplitHtml = this.paysplit 
+      ? html``
+      : html``;
+
     return html`
       <div class="main">
         <div class="actions">
@@ -34,8 +38,9 @@ export class App extends LitElement {
           <button @click="${this._handleParsePaysplitData}">Hide Parsed Panel</button>
         </div>
         <div class="log-panel d-none"></div>
+        ${paysplitHtml}
         <div class="parsed-data-panel d-none">
-          
+
           <div name="year-month"></div>
         </div>
       </div>
